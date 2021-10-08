@@ -21,14 +21,17 @@ public class Crypt {
     private static final int TAG_LENGTH_BIT = 128; // Must be one of {128, 120, 112, 104, 96}
     private static final int ITERATION_COUNT = 250_420;
     private static final int KEY_LENGTH = 256;
-    private String password;
+    private final String password;
+
+    public Crypt(String password) {
+        this.password = password;
+    }
 
     public static void main(String[] args) throws TittyCryptoException {
         String sensitiveInformation = "nuclear-launch-codes";
         String password = "HighlySecure123!";
 
-        Crypt crypt = new Crypt();
-        crypt.setPassword(password);
+        Crypt crypt = new Crypt(password);
 
         String encrypted = crypt.encrypt(sensitiveInformation);
         System.out.println(encrypted);
@@ -66,10 +69,6 @@ public class Crypt {
                 .getInstance(SECRET_KEY_ALGO)
                 .generateSecret(new PBEKeySpec(password, salt, ITERATION_COUNT, KEY_LENGTH))
                 .getEncoded(), "AES");
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     /**
