@@ -1,5 +1,7 @@
 package io.ttrms;
 
+import lombok.RequiredArgsConstructor;
+
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
@@ -12,21 +14,15 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 
+@RequiredArgsConstructor
 public class Crypt {
     private static final Charset UTF_8 = StandardCharsets.UTF_8;
-    private static final String ENCRYPT_ALGO = "AES/GCM/NoPadding";
-    private static final String SECRET_KEY_ALGO = "PBKDF2WithHmacSHA256";
-    private static final int SALT_LENGTH_BYTE = 16;
-    private static final int IV_LENGTH_BYTE = 12;
-    private static final int TAG_LENGTH_BIT = 128; // Must be one of {128, 120, 112, 104, 96}
-    private static final int ITERATION_COUNT = 250_420;
-    private static final int KEY_LENGTH = 256;
+    private final CryptSpec cryptSpec;
     private final String password;
 
-    public Crypt(String password) {
-        this.password = password;
-    }
-
+    /**
+     * Purely for testing & sample usage
+     */
     public static void main(String[] args) {
         try {
             SampleCrypt.sampleCryptTest();
@@ -50,7 +46,7 @@ public class Crypt {
     /**
      * Cryptographically generate random data for salting
      */
-    private static byte[] getRandomNonce(int numBytes) {
+    private byte[] getRandomNonce(int numBytes) {
         byte[] nonce = new byte[numBytes];
         new SecureRandom().nextBytes(nonce);
         return nonce;
@@ -59,10 +55,10 @@ public class Crypt {
     /**
      * Returns a secret key from the provided password
      */
-    private static SecretKey getAESKeyFromPassword(char[] password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    private SecretKey getAESKeyFromPassword(char[] password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
         return new SecretKeySpec(SecretKeyFactory
-                .getInstance(SECRET_KEY_ALGO)
-                .generateSecret(new PBEKeySpec(password, salt, ITERATION_COUNT, KEY_LENGTH))
+                .getInstance(cryptSpec.getSecretKeyAlgo())
+                .generateSecret(new PBEKeySpec(password, salt, cryptSpec.getIterationCount(), cryptSpec.getKeyLength()))
                 .getEncoded(), "AES");
     }
 
@@ -77,18 +73,18 @@ public class Crypt {
         try {
 
             // 16 bytes random salt
-            byte[] salt = getRandomNonce(SALT_LENGTH_BYTE);
+            byte[] salt = getRandomNonce(cryptSpec.getSaltByteLength());
 
             // GCM recommended 12 bytes iv
-            byte[] iv = getRandomNonce(IV_LENGTH_BYTE);
+            byte[] iv = getRandomNonce(cryptSpec.getIvByteLength());
 
             // Secret key derived from password and salt
             SecretKey aesKeyFromPassword = getAESKeyFromPassword(password.toCharArray(), salt);
 
-            Cipher cipher = Cipher.getInstance(ENCRYPT_ALGO);
+            Cipher cipher = Cipher.getInstance(cryptSpec.getEncryptAlgo());
 
             // ASE-GCM needs GCMParameterSpec
-            cipher.init(Cipher.ENCRYPT_MODE, aesKeyFromPassword, new GCMParameterSpec(TAG_LENGTH_BIT, iv));
+            cipher.init(Cipher.ENCRYPT_MODE, aesKeyFromPassword, new GCMParameterSpec(cryptSpec.getTagBitLength(), iv));
 
             byte[] cipherText = cipher.doFinal(data.getBytes(UTF_8));
 
@@ -121,10 +117,10 @@ public class Crypt {
             // Get back the IV and salt from the cipher text
             ByteBuffer bb = ByteBuffer.wrap(decode);
 
-            byte[] iv = new byte[IV_LENGTH_BYTE];
+            byte[] iv = new byte[cryptSpec.getIvByteLength()];
             bb.get(iv);
 
-            byte[] salt = new byte[SALT_LENGTH_BYTE];
+            byte[] salt = new byte[cryptSpec.getSaltByteLength()];
             bb.get(salt);
 
             byte[] cipherText = new byte[bb.remaining()];
@@ -133,9 +129,9 @@ public class Crypt {
             // Get back the AES key from the same password and salt
             SecretKey aesKeyFromPassword = getAESKeyFromPassword(password.toCharArray(), salt);
 
-            Cipher cipher = Cipher.getInstance(ENCRYPT_ALGO);
+            Cipher cipher = Cipher.getInstance(cryptSpec.getEncryptAlgo());
 
-            cipher.init(Cipher.DECRYPT_MODE, aesKeyFromPassword, new GCMParameterSpec(TAG_LENGTH_BIT, iv));
+            cipher.init(Cipher.DECRYPT_MODE, aesKeyFromPassword, new GCMParameterSpec(cryptSpec.getTagBitLength(), iv));
 
             byte[] plainText = cipher.doFinal(cipherText);
 
