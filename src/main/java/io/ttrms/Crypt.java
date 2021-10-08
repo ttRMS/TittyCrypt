@@ -27,17 +27,12 @@ public class Crypt {
         this.password = password;
     }
 
-    public static void main(String[] args) throws TittyCryptoException {
-        String sensitiveInformation = "nuclear-launch-codes";
-        String password = "HighlySecure123!";
-
-        Crypt crypt = new Crypt(password);
-
-        String encrypted = crypt.encrypt(sensitiveInformation);
-        System.out.println(encrypted);
-
-        String decrypted = crypt.decrypt(encrypted);
-        System.out.println(decrypted);
+    public static void main(String[] args) {
+        try {
+            SampleCrypt.sampleCryptTest();
+        } catch (TittyCryptoException ex) {
+            ex.printStackTrace();
+        }
     }
 
     /**
