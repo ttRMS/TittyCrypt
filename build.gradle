@@ -4,6 +4,8 @@ plugins {
     id "io.freefair.lombok" version "6.2.0"
 }
 
+apply plugin: 'maven-publish'
+
 group 'io.ttrms'
 version '0.1.0'
 
