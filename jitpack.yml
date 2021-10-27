@@ -3,3 +3,6 @@ before_install:
   - sdk update
   - sdk install java 16.0.2-open
   - sdk use java 16.0.2-open
+install:
+  - echo "Building Shadowjar"
+  - ./gradlew shadowJar
