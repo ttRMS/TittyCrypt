@@ -3,7 +3,8 @@ before_install:
   - sdk update
   - sdk install java 16.0.2-open
   - sdk use java 16.0.2-open
+  - chmod +x gradlew
 install:
   - echo "Building Shadowjar"
   - chmod +x ./gradlew
-  - ./gradlew shadowJar
+  - ./gradlew shadowJar publishToMavenLocal
