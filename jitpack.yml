@@ -5,4 +5,5 @@ before_install:
   - sdk use java 16.0.2-open
 install:
   - echo "Building Shadowjar"
+  - chmod +x ./gradlew
   - ./gradlew shadowJar
