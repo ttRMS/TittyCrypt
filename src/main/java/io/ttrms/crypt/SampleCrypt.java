@@ -1,4 +1,4 @@
-package io.ttrms;
+package io.ttrms.crypt;
 
 import java.security.Provider;
 import java.security.Security;

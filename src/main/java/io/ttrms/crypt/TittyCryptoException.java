@@ -1,4 +1,4 @@
-package io.ttrms;
+package io.ttrms.crypt;
 
 public class TittyCryptoException extends Exception {
 

@@ -1,4 +1,4 @@
-package io.ttrms;
+package io.ttrms.crypt;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
